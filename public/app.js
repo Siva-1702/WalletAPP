@@ -18,6 +18,14 @@ const money = (value) => new Intl.NumberFormat('en-IN', { style: 'currency', cur
 const showScreen = (name) => Object.entries(screens).forEach(([key, el]) => el.classList.toggle('active', key === name));
 const toast = document.getElementById('toast');
 
+const normalizeMobileNumber = (value) => {
+  const trimmedValue = value.trim();
+  const hasLeadingPlus = trimmedValue.startsWith('+');
+  const digitsOnly = trimmedValue.replace(/\D/g, '');
+  return hasLeadingPlus ? `+${digitsOnly}` : digitsOnly;
+};
+
+
 const showToast = (message) => {
   toast.textContent = message;
   toast.hidden = false;
@@ -88,27 +96,35 @@ const renderPassbook = async () => {
 };
 
 const requestOtp = async (purpose) => {
-  const mobileNumber = document.getElementById('mobileNumber').value.trim();
+  const mobileInput = document.getElementById('mobileNumber');
+  const mobileNumber = normalizeMobileNumber(mobileInput.value);
+  mobileInput.value = mobileNumber;
   const consent = document.getElementById('adultConsent').checked;
   if (!consent) {
     showToast('Please confirm the age checkbox.');
     return;
   }
-  const payload = await api('/api/v1/auth/otp/request', {
-    method: 'POST',
-    body: JSON.stringify({ mobileNumber, purpose })
-  });
-  state.currentPurpose = purpose;
-  state.devOtp = payload.data.otp || '';
-  document.getElementById('devOtpPanel').hidden = !state.devOtp;
-  document.getElementById('devOtpValue').textContent = state.devOtp;
-  document.getElementById('otpInput').value = state.devOtp;
-  showToast(payload.message);
-  showScreen('otp');
+  try {
+    const payload = await api('/api/v1/auth/otp/request', {
+      method: 'POST',
+      body: JSON.stringify({ mobileNumber, purpose })
+    });
+    state.currentPurpose = purpose;
+    state.devOtp = payload.data.otp || '';
+    document.getElementById('devOtpPanel').hidden = !state.devOtp;
+    document.getElementById('devOtpValue').textContent = state.devOtp;
+    document.getElementById('otpInput').value = state.devOtp;
+    showToast(payload.message);
+    showScreen('otp');
+  } catch (error) {
+    showToast(error.message);
+  }
 };
 
 const verifyOtp = async () => {
-  const mobileNumber = document.getElementById('mobileNumber').value.trim();
+  const mobileInput = document.getElementById('mobileNumber');
+  const mobileNumber = normalizeMobileNumber(mobileInput.value);
+  mobileInput.value = mobileNumber;
   const otp = document.getElementById('otpInput').value.trim();
   const consent = document.getElementById('otpConsent').checked;
   if (!consent) {
@@ -116,17 +132,21 @@ const verifyOtp = async () => {
     return;
   }
   const fullName = document.getElementById('nameInput').value.trim();
-  const payload = await api('/api/v1/auth/otp/verify', {
-    method: 'POST',
-    body: JSON.stringify({ mobileNumber, purpose: state.currentPurpose, otp, fullName: fullName || undefined })
-  });
-  persistAuth(payload.data);
-  document.getElementById('nameInput').value = payload.data.user.fullName || '';
-  if (!payload.data.user.fullName) {
-    showScreen('name');
-    return;
+  try {
+    const payload = await api('/api/v1/auth/otp/verify', {
+      method: 'POST',
+      body: JSON.stringify({ mobileNumber, purpose: state.currentPurpose, otp, fullName: fullName || undefined })
+    });
+    persistAuth(payload.data);
+    document.getElementById('nameInput').value = payload.data.user.fullName || '';
+    if (!payload.data.user.fullName) {
+      showScreen('name');
+      return;
+    }
+    await renderAccount();
+  } catch (error) {
+    showToast(error.message);
   }
-  await renderAccount();
 };
 
 const updateName = async () => {

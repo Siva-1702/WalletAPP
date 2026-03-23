@@ -54,6 +54,23 @@ test('root path serves the requested UI shell', async () => {
   }
 });
 
+test('OTP request accepts formatted mobile numbers with spaces', async () => {
+  resetDb();
+  const { server, baseUrl } = await startServer();
+  try {
+    const response = await fetch(`${baseUrl}/api/v1/auth/otp/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mobileNumber: '+91 8778277017', purpose: 'REGISTER' })
+    });
+    const body = await response.json();
+    assert.equal(response.status, 201);
+    assert.match(body.data.otp, /^\d{6}$/);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
 test('OTP registration and wallet flow works end-to-end', async () => {
   resetDb();
   const { server, baseUrl } = await startServer();

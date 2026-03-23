@@ -1,9 +1,14 @@
 const ApiError = require('../utils/apiError');
+const { normalizeMobileNumber } = require('../utils/mobileNumber');
+
 
 const assertMobileNumber = (mobileNumber) => {
-  if (!/^\+?[1-9]\d{9,14}$/.test(mobileNumber || '')) {
+  const normalizedMobileNumber = normalizeMobileNumber(mobileNumber);
+  if (!/^\+?[1-9]\d{9,14}$/.test(normalizedMobileNumber)) {
     throw new ApiError(422, 'Provide a valid mobile number with country code.');
   }
+
+  return normalizedMobileNumber;
 };
 
 const assertPurpose = (purpose) => {

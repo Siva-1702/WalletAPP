@@ -7,25 +7,25 @@ const { assertMobileNumber, assertPurpose, assertOtp } = require('../validators/
 const ApiError = require('../utils/apiError');
 
 const requestOtp = ({ mobileNumber, purpose }) => {
-  assertMobileNumber(mobileNumber);
+  const normalizedMobileNumber = assertMobileNumber(mobileNumber);
   assertPurpose(purpose);
 
-  if (purpose === 'LOGIN' && !userModel.findByMobileNumber(mobileNumber)) {
+  if (purpose === 'LOGIN' && !userModel.findByMobileNumber(normalizedMobileNumber)) {
     throw new ApiError(404, 'User not found. Please register first.');
   }
 
   return {
     statusCode: 201,
-    body: { success: true, message: 'OTP issued successfully.', data: issueOtp({ mobileNumber, purpose }) }
+    body: { success: true, message: 'OTP issued successfully.', data: issueOtp({ mobileNumber: normalizedMobileNumber, purpose }) }
   };
 };
 
 const verifyMobileOtp = ({ mobileNumber, purpose, otp, fullName }) => {
-  assertMobileNumber(mobileNumber);
+  const normalizedMobileNumber = assertMobileNumber(mobileNumber);
   assertPurpose(purpose);
   assertOtp(otp);
-  verifyOtp({ mobileNumber, purpose, otp });
-  const payload = registerOrLoginByMobile({ mobileNumber, fullName });
+  verifyOtp({ mobileNumber: normalizedMobileNumber, purpose, otp });
+  const payload = registerOrLoginByMobile({ mobileNumber: normalizedMobileNumber, fullName });
   return { statusCode: 200, body: { success: true, message: 'Authentication successful.', data: payload } };
 };
 
