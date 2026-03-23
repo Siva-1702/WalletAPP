@@ -1,0 +1,7 @@
+node_modules/
+.env
+coverage/
+storage/*.sqlite
+storage/*.sqlite-journal
+storage/*.sqlite-wal
+storage/*.sqlite-shm
