@@ -1,0 +1,5 @@
+node_modules/
+.env
+coverage/
+storage/*.sqlite
+storage/*.sqlite-journal
