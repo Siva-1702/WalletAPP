@@ -28,6 +28,29 @@ const normalizeMobileNumber = (value) => {
 
 const normalizeAadhaarNumber = (value) => value.replace(/\D/g, '');
 
+const consumeOauthHash = async () => {
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const token = hashParams.get('token');
+  const error = hashParams.get('error');
+
+  if (error) {
+    showToast(error);
+    history.replaceState(null, '', '/');
+    return;
+  }
+
+  if (token) {
+    state.token = token;
+    localStorage.setItem('wallet_token', token);
+    history.replaceState(null, '', '/');
+    await renderAccount();
+  }
+};
+
+const startGoogleAuth = (mode) => {
+  window.location.href = `/api/v1/auth/google?mode=${mode}`;
+};
+
 const showToast = (message) => {
   toast.textContent = message;
   toast.hidden = false;
@@ -209,6 +232,8 @@ const logout = () => {
 document.getElementById('registerBtn').addEventListener('click', () => requestOtp('REGISTER'));
 document.getElementById('loginBtn').addEventListener('click', () => requestOtp('LOGIN'));
 document.getElementById('submitOtpBtn').addEventListener('click', verifyOtp);
+document.getElementById('googleRegisterBtn').addEventListener('click', () => startGoogleAuth('register'));
+document.getElementById('googleLoginBtn').addEventListener('click', () => startGoogleAuth('login'));
 document.getElementById('saveNameBtn').addEventListener('click', updateName);
 document.getElementById('editNameBtn').addEventListener('click', () => {
   document.getElementById('nameInput').value = state.user?.fullName || '';
@@ -231,6 +256,7 @@ document.getElementById('logoutBtn').addEventListener('click', logout);
 document.getElementById('logoutTextBtn').addEventListener('click', logout);
 Array.from(document.querySelectorAll('[data-back="account"]')).forEach((button) => button.addEventListener('click', renderAccount));
 
+consumeOauthHash().catch((error) => showToast(error.message));
 if (state.token) {
   renderAccount().catch(() => logout());
 } else {

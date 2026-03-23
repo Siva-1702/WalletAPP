@@ -50,7 +50,7 @@ const routeRequest = async (req, res) => {
     }
 
     if (req.method === 'GET' && path === '/api/v1/auth/google') {
-      const payload = authController.googleStart();
+      const payload = authController.googleStart(url.searchParams.get('mode') || 'login');
       res.writeHead(302, { Location: payload.redirect });
       res.end();
       return;
@@ -58,11 +58,19 @@ const routeRequest = async (req, res) => {
 
     if (req.method === 'GET' && path === '/api/v1/auth/google/callback') {
       const code = url.searchParams.get('code');
+      const state = url.searchParams.get('state');
       if (!code) {
         throw new ApiError(400, 'Missing Google authorization code.');
       }
-      const authPayload = await authController.googleCallback(code);
-      return sendJson(res, 200, { success: true, data: authPayload });
+      try {
+        const authPayload = await authController.googleCallback({ code, state });
+        res.writeHead(302, { Location: authPayload.redirect });
+      } catch (error) {
+        const fallbackRedirect = `/#${new URLSearchParams({ error: error.message }).toString()}`;
+        res.writeHead(302, { Location: fallbackRedirect });
+      }
+      res.end();
+      return;
     }
 
     if (path.startsWith('/api/v1/users')) {

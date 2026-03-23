@@ -1,10 +1,19 @@
 const db = require('../config/database');
 
+
+const ensureColumn = (tableName, columnName, definition) => {
+  const columns = db.prepare(`PRAGMA table_info(${tableName})`).all();
+  if (!columns.some((column) => column.name === columnName)) {
+    db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
+  }
+};
+
 const runMigrations = () => {
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       mobile_number TEXT NOT NULL UNIQUE,
+      email TEXT UNIQUE,
       full_name TEXT,
       is_active INTEGER NOT NULL DEFAULT 1,
       is_verified INTEGER NOT NULL DEFAULT 0,
@@ -64,6 +73,9 @@ const runMigrations = () => {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
   `);
+
+  ensureColumn('users', 'email', 'TEXT');
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_unique ON users(email) WHERE email IS NOT NULL');
 };
 
 module.exports = { runMigrations };

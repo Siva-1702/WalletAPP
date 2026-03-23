@@ -3,6 +3,7 @@ const db = require('../config/database');
 const mapUser = (row) => row && ({
   id: row.id,
   mobileNumber: row.mobile_number,
+  email: row.email,
   fullName: row.full_name,
   isActive: Boolean(row.is_active),
   isVerified: Boolean(row.is_verified),
@@ -19,16 +20,18 @@ const findByMobileNumber = (mobileNumber) => mapUser(
 
 const findById = (id) => mapUser(db.prepare('SELECT * FROM users WHERE id = ?').get(id));
 
+const findByEmail = (email) => mapUser(db.prepare('SELECT * FROM users WHERE email = ?').get(email));
+
 const findByOauth = (provider, providerId) => mapUser(
   db.prepare('SELECT * FROM users WHERE oauth_provider = ? AND oauth_provider_id = ?').get(provider, providerId)
 );
 
-const create = ({ mobileNumber, fullName, isVerified = 0, oauthProvider = null, oauthProviderId = null }) => {
+const create = ({ mobileNumber, email = null, fullName, isVerified = 0, oauthProvider = null, oauthProviderId = null }) => {
   const now = new Date().toISOString();
   const result = db.prepare(`
-    INSERT INTO users (mobile_number, full_name, is_verified, oauth_provider, oauth_provider_id, last_login_at, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(mobileNumber, fullName || null, isVerified ? 1 : 0, oauthProvider, oauthProviderId, now, now, now);
+    INSERT INTO users (mobile_number, email, full_name, is_verified, oauth_provider, oauth_provider_id, last_login_at, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(mobileNumber, email, fullName || null, isVerified ? 1 : 0, oauthProvider, oauthProviderId, now, now, now);
   return findById(result.lastInsertRowid);
 };
 
@@ -60,4 +63,16 @@ const listDetailed = () => db.prepare(`
   kyc: row.kyc_status ? { status: row.kyc_status, aadhaarNumberMasked: row.aadhaar_number_masked, verifiedAt: row.verified_at } : null
 }));
 
-module.exports = { findByMobileNumber, findById, findByOauth, create, updateProfile, markVerifiedLogin, listDetailed };
+
+const updateGoogleIdentity = ({ id, email, providerId, fullName }) => {
+  const now = new Date().toISOString();
+  db.prepare(`
+    UPDATE users
+    SET email = COALESCE(email, ?), full_name = COALESCE(full_name, ?), oauth_provider = 'google', oauth_provider_id = ?, is_verified = 1, last_login_at = ?, updated_at = ?
+    WHERE id = ?
+  `).run(email || null, fullName || null, providerId, now, now, id);
+
+  return findById(id);
+};
+
+module.exports = { findByMobileNumber, findById, findByEmail, findByOauth, create, updateProfile, markVerifiedLogin, updateGoogleIdentity, listDetailed };

@@ -7,6 +7,7 @@ process.env.JWT_SECRET = 'test-secret';
 const db = require('../src/config/database');
 const { runMigrations } = require('../src/migrations/schema');
 const { createApp } = require('../src/app');
+const { buildGoogleAuthUrl, decodeState, syncGoogleUser } = require('../src/services/oauthService');
 
 const resetDb = () => {
   runMigrations();
@@ -52,6 +53,33 @@ test('root path serves the requested UI shell', async () => {
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }
+});
+
+test('Google OAuth state round-trip works for register mode', async () => {
+  const authUrl = new URL(buildGoogleAuthUrl('register'));
+  const state = authUrl.searchParams.get('state');
+  const payload = decodeState(state);
+  assert.equal(payload.mode, 'register');
+});
+
+test('Google login validation rejects unregistered Google users', async () => {
+  resetDb();
+  assert.throws(() => syncGoogleUser({
+    mode: 'login',
+    profile: { sub: 'google-sub-1', email: 'new@example.com', email_verified: true, name: 'New User' }
+  }), /Google account not registered/);
+});
+
+test('Google register validation rejects already registered Google users', async () => {
+  resetDb();
+  syncGoogleUser({
+    mode: 'register',
+    profile: { sub: 'google-sub-2', email: 'google@example.com', email_verified: true, name: 'Google User' }
+  });
+  assert.throws(() => syncGoogleUser({
+    mode: 'register',
+    profile: { sub: 'google-sub-2', email: 'google@example.com', email_verified: true, name: 'Google User' }
+  }), /Google account already registered/);
 });
 
 test('OTP request accepts formatted mobile numbers with spaces', async () => {
