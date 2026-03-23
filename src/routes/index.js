@@ -3,6 +3,10 @@ const authController = require('../controllers/authController');
 const userController = require('../controllers/userController');
 const walletController = require('../controllers/walletController');
 const kycController = require('../controllers/kycController');
+<<<<<<< codex/develop-user-module-with-crud-api-jf5o2z
+const { serveUi } = require('../controllers/uiController');
+=======
+>>>>>>> main
 const { requireAuth } = require('../middlewares/authMiddleware');
 const { readJsonBody, sendJson } = require('../utils/json');
 const ApiError = require('../utils/apiError');
@@ -24,6 +28,13 @@ const routeRequest = async (req, res) => {
   const path = url.pathname;
 
   try {
+<<<<<<< codex/develop-user-module-with-crud-api-jf5o2z
+    if (serveUi(req, res, path)) {
+      return;
+    }
+
+=======
+>>>>>>> main
     if (req.method === 'GET' && path === '/api/v1/health') {
       return sendJson(res, 200, { success: true, message: 'WalletAPP API is healthy.' });
     }
