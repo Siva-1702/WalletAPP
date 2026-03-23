@@ -71,6 +71,43 @@ test('OTP request accepts formatted mobile numbers with spaces', async () => {
   }
 });
 
+test('KYC accepts Aadhaar numbers formatted with spaces', async () => {
+  resetDb();
+  const { server, baseUrl } = await startServer();
+  try {
+    const otpResponse = await fetch(`${baseUrl}/api/v1/auth/otp/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mobileNumber: '+919876543210', purpose: 'REGISTER' })
+    });
+    const otpBody = await otpResponse.json();
+
+    const verifyResponse = await fetch(`${baseUrl}/api/v1/auth/otp/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mobileNumber: '+919876543210',
+        purpose: 'REGISTER',
+        otp: otpBody.data.otp,
+        fullName: 'Praveen Kumar'
+      })
+    });
+    const verifyBody = await verifyResponse.json();
+    const token = verifyBody.data.token;
+
+    const kycResponse = await fetch(`${baseUrl}/api/v1/kyc`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ aadhaarNumber: '3738 4011 12 34' })
+    });
+    const kycBody = await kycResponse.json();
+    assert.equal(kycResponse.status, 201);
+    assert.equal(kycBody.data.record.aadhaarNumberMasked, 'XXXX-XXXX-1234');
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
 test('OTP registration and wallet flow works end-to-end', async () => {
   resetDb();
   const { server, baseUrl } = await startServer();

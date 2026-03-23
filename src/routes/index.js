@@ -109,7 +109,7 @@ const routeRequest = async (req, res) => {
         return sendJson(res, payload.statusCode, payload.body);
       }
       if (req.method === 'POST' && path === '/api/v1/kyc') {
-        const payload = kycController.submitKyc({ user: req.user, ...(await readJsonBody(req)) });
+        const payload = await kycController.submitKyc({ user: req.user, ...(await readJsonBody(req)) });
         return sendJson(res, payload.statusCode, payload.body);
       }
     }

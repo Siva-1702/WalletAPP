@@ -2,9 +2,9 @@ const kycModel = require('../models/kycModel');
 const { verifyAadhaar } = require('../services/uidaiService');
 const { assertAadhaar } = require('../validators/requestValidators');
 
-const submitKyc = ({ user, aadhaarNumber }) => {
-  assertAadhaar(aadhaarNumber);
-  const verification = verifyAadhaar({ aadhaarNumber, fullName: user.fullName || 'User' });
+const submitKyc = async ({ user, aadhaarNumber }) => {
+  const normalizedAadhaarNumber = assertAadhaar(aadhaarNumber);
+  const verification = await verifyAadhaar({ aadhaarNumber: normalizedAadhaarNumber, fullName: user.fullName || 'User' });
   const record = kycModel.upsert({ userId: user.id, ...verification });
   return {
     statusCode: 201,

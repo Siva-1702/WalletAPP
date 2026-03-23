@@ -1,5 +1,6 @@
 const ApiError = require('../utils/apiError');
 const { normalizeMobileNumber } = require('../utils/mobileNumber');
+const { normalizeAadhaarNumber } = require('../utils/aadhaarNumber');
 
 
 const assertMobileNumber = (mobileNumber) => {
@@ -36,9 +37,12 @@ const assertAmount = (amount) => {
 };
 
 const assertAadhaar = (aadhaarNumber) => {
-  if (!/^\d{12}$/.test(aadhaarNumber || '')) {
+  const normalizedAadhaarNumber = normalizeAadhaarNumber(aadhaarNumber);
+  if (!/^\d{12}$/.test(normalizedAadhaarNumber)) {
     throw new ApiError(422, 'Aadhaar number must be 12 digits.');
   }
+
+  return normalizedAadhaarNumber;
 };
 
 module.exports = { assertMobileNumber, assertPurpose, assertOtp, assertFullName, assertAmount, assertAadhaar };

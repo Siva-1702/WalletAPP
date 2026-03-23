@@ -9,5 +9,12 @@ module.exports = {
   otpTtlMinutes: Number(process.env.OTP_TTL_MINUTES || 5),
   googleClientId: process.env.GOOGLE_CLIENT_ID || '',
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-  googleCallbackUrl: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/api/v1/auth/google/callback'
+  googleCallbackUrl: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/api/v1/auth/google/callback',
+  kycProvider: process.env.KYC_PROVIDER || 'simulator',
+  uidaiKycEndpoint: process.env.UIDAI_KYC_ENDPOINT || 'https://developer.uidai.gov.in/uidkyc/kyc/2.5',
+  uidaiKycVersion: process.env.UIDAI_KYC_VERSION || '2.5',
+  uidaiKycAc: process.env.UIDAI_KYC_AC || 'public',
+  uidaiKycAsaLicenseKey: process.env.UIDAI_KYC_ASA_LICENSE_KEY || '',
+  uidaiKycConsent: process.env.UIDAI_KYC_CONSENT || 'Y',
+  uidaiKycSource: process.env.UIDAI_KYC_SOURCE || 'WEB'
 };

@@ -26,6 +26,8 @@ const normalizeMobileNumber = (value) => {
 };
 
 
+const normalizeAadhaarNumber = (value) => value.replace(/\D/g, '');
+
 const showToast = (message) => {
   toast.textContent = message;
   toast.hidden = false;
@@ -178,16 +180,22 @@ const walletAction = async (endpoint, action) => {
 };
 
 const submitKyc = async () => {
-  const aadhaarNumber = document.getElementById('aadhaarInput').value.trim();
-  const payload = await api('/api/v1/kyc', {
-    method: 'POST',
-    body: JSON.stringify({ aadhaarNumber })
-  });
-  const result = document.getElementById('kycResult');
-  result.hidden = false;
-  result.innerHTML = `<strong>Status:</strong> ${payload.data.record.status}<br/><strong>Reference:</strong> ${payload.data.record.verificationReference}<br/><strong>Document:</strong> ${payload.data.record.aadhaarNumberMasked}`;
-  await renderAccount();
-  showScreen('kyc');
+  const aadhaarInput = document.getElementById('aadhaarInput');
+  const aadhaarNumber = normalizeAadhaarNumber(aadhaarInput.value);
+  aadhaarInput.value = aadhaarNumber;
+  try {
+    const payload = await api('/api/v1/kyc', {
+      method: 'POST',
+      body: JSON.stringify({ aadhaarNumber })
+    });
+    const result = document.getElementById('kycResult');
+    result.hidden = false;
+    result.innerHTML = `<strong>Status:</strong> ${payload.data.record.status}<br/><strong>Reference:</strong> ${payload.data.record.verificationReference}<br/><strong>Document:</strong> ${payload.data.record.aadhaarNumberMasked}`;
+    await renderAccount();
+    showScreen('kyc');
+  } catch (error) {
+    showToast(error.message);
+  }
 };
 
 const logout = () => {

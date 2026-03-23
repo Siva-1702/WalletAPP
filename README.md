@@ -10,7 +10,6 @@ Production-ready Node.js MVC API for registration/login via mobile OTP, wallet o
 - KYC submission and verification simulation using a UIDAI-style adapter abstraction.
 - Normalized relational schema using native SQLite tables and SQL constraints for a ready-to-run setup.
 - Mobile-style frontend screens included for registration, OTP, profile, wallet, passbook, and KYC.
-- Mobile-style frontend screens included for registration, OTP, profile, wallet, passbook, and KYC.
 - Postman collection included.
 
 ## Quick Start
@@ -33,3 +32,8 @@ npm start
 - Open `http://localhost:3000/` to use the mobile UI screens that match the shared reference images.
 - The UI calls the same `/api/v1` endpoints used by Postman.
 
+
+## KYC Provider Modes
+- `KYC_PROVIDER=simulator` keeps the project runnable locally and uses the built-in UIDAI-style simulator.
+- `KYC_PROVIDER=uidai-dev` switches the KYC service to the official UIDAI developer endpoint format and uses the configured `UIDAI_KYC_*` settings.
+- The UIDAI developer section publishes test endpoint patterns such as `https://developer.uidai.gov.in/uidkyc/kyc/2.5` and test codes like `ac=public`; however, successful live requests still depend on the required UIDAI cryptographic setup and license key configuration.
