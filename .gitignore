@@ -3,5 +3,8 @@ node_modules/
 coverage/
 storage/*.sqlite
 storage/*.sqlite-journal
+<<<<<<< codex/develop-user-module-with-crud-api-jf5o2z
 storage/*.sqlite-wal
 storage/*.sqlite-shm
+=======
+>>>>>>> main
