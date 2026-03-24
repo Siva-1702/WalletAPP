@@ -53,7 +53,7 @@ h1 { text-align: center; font-size: 18px; margin-bottom: 14px; }
 }
 #mobileNumber, #otpInput, #nameInput, #aadhaarInput { font-size: 18px; }
 .hint { color: #d3d0dd; font-size: 13px; line-height: 1.45; margin: 12px 0 18px; }
-.checkbox-row { display: flex; align-items: center; gap: 10px; color: #ddd; font-size: 14px; margin-bottom: 18px; }
+.checkbox-row { display: flex; align-items: center; gap: 10px; color: #ddd; font-size: 14px; margin-bottom: 18px; justify-content: center; margin-top: 10px;}
 .checkbox-row input { width: 18px; height: 18px; accent-color: var(--gold); }
 .primary-btn, .secondary-btn {
   width: 100%; border-radius: 9px; border: 0; padding: 16px; font-size: 22px; font-weight: 700; cursor: pointer;
@@ -65,6 +65,9 @@ h1 { text-align: center; font-size: 18px; margin-bottom: 14px; }
 .dev-otp, .result-card {
   background: rgba(222, 200, 90, .12); border: 1px solid rgba(222, 200, 90, .35); color: #f7e898;
   border-radius: 10px; padding: 12px; margin-bottom: 16px; font-size: 14px;
+}
+#devOtpPanel {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
 }
 .screen-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
 .back-btn {
@@ -228,4 +231,23 @@ h1 { text-align: center; font-size: 18px; margin-bottom: 14px; }
     max-width: 520px;
     margin: 0 auto;
   }
+}
+
+.dev-otp {
+  width: fit-content;
+  margin: 10px auto;
+}
+
+
+.primary-btn {
+  margin-top: 16px;
+  display: block;
+
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 18px;
+  font-weight: 600;
+
+  background: linear-gradient(90deg, #bba45b, #ecd55a);
+  color: #1a1a1a;
 }

@@ -20,14 +20,14 @@
         <input id="mobileNumber" type="tel" placeholder="+91 9876543210" value="+91 9876543210" />
       </label>
       <p class="hint">You will receive an OTP for verification.</p>
-      <label class="checkbox-row">
-        <input id="adultConsent" type="checkbox" checked />
-        <span>I certify that I am 18 years old.</span>
-      </label>
       <div class="stack gap-sm">
         <button id="registerBtn" class="primary-btn">Register</button>
         <button id="loginBtn" class="secondary-btn">Login</button>
       </div>
+      <label class="checkbox-row">
+        <input id="adultConsent" type="checkbox" checked />
+        <span>I certify that I am 18 years old.</span>
+      </label>
     </section>
 
     <section class="screen" id="screen-otp">
@@ -45,11 +45,11 @@
       <div class="dev-otp" id="devOtpPanel" hidden>
         <strong>Demo OTP:</strong> <span id="devOtpValue"></span>
       </div>
+      <button id="submitOtpBtn" class="primary-btn">Submit</button>
       <label class="checkbox-row">
         <input id="otpConsent" type="checkbox" checked />
         <span>I certify that I am 18 years old.</span>
       </label>
-      <button id="submitOtpBtn" class="primary-btn">Submit</button>
     </section>
 
     <section class="screen" id="screen-name">
