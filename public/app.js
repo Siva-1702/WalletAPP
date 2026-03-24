@@ -113,6 +113,9 @@ const requestOtp = async (purpose) => {
       body: JSON.stringify({ mobileNumber, purpose })
     });
     state.currentPurpose = purpose;
+    if (purpose === 'REGISTER') {
+      document.getElementById('nameInput').value = '';
+    }
     state.devOtp = payload.data.otp || '';
     document.getElementById('devOtpPanel').hidden = !state.devOtp;
     document.getElementById('devOtpValue').textContent = state.devOtp;
@@ -135,11 +138,10 @@ const verifyOtp = async () => {
   const mobileNumber = normalizeMobileNumber(mobileInput.value);
   mobileInput.value = mobileNumber;
   const otp = document.getElementById('otpInput').value.trim();
-  const fullName = document.getElementById('nameInput').value.trim();
   try {
     const payload = await api('/api/v1/auth/otp/verify', {
       method: 'POST',
-      body: JSON.stringify({ mobileNumber, purpose: state.currentPurpose, otp, fullName: fullName || undefined })
+      body: JSON.stringify({ mobileNumber, purpose: state.currentPurpose, otp })
     });
     persistAuth(payload.data);
     document.getElementById('nameInput').value = payload.data.user.fullName || '';
@@ -184,33 +186,51 @@ const walletAction = async (endpoint, amount, narration, successMessage) => {
 };
 
 const openAddMoney = async () => {
-  const auth = await api('/api/v1/auth/me');
-  const wallet = auth.data.user.wallet || { balance: 0 };
-  document.getElementById('addMoneyCurrentBalance').textContent = money(wallet.balance);
-  document.getElementById('addMoneyAmountInput').value = '';
-  showScreen('addMoney');
+  try {
+    const auth = await api('/api/v1/auth/me');
+    const wallet = auth.data.user.wallet || { balance: 0 };
+    document.getElementById('addMoneyCurrentBalance').textContent = money(wallet.balance);
+    document.getElementById('addMoneyAmountInput').value = '';
+    showScreen('addMoney');
+  } catch (error) {
+    showToast(error.message);
+    logout();
+  }
 };
 
 const submitAddMoney = async () => {
-  const amount = document.getElementById('addMoneyAmountInput').value.trim();
-  await walletAction('add-money', amount, 'Wallet top-up from UI', 'Wallet credited successfully.');
+  try {
+    const amount = document.getElementById('addMoneyAmountInput').value.trim();
+    await walletAction('add-money', amount, 'Wallet top-up from UI', 'Wallet credited successfully.');
+  } catch (error) {
+    showToast(error.message);
+  }
 };
 
 const openWithdraw = async () => {
-  const auth = await api('/api/v1/auth/me');
-  const wallet = auth.data.user.wallet || { lockedBalance: 0 };
-  document.getElementById('withdrawCurrentBalance').textContent = money(wallet.lockedBalance || 0);
-  document.getElementById('withdrawAmountInput').value = '';
-  showScreen('withdraw');
+  try {
+    const auth = await api('/api/v1/auth/me');
+    const wallet = auth.data.user.wallet || { lockedBalance: 0 };
+    document.getElementById('withdrawCurrentBalance').textContent = money(wallet.lockedBalance || 0);
+    document.getElementById('withdrawAmountInput').value = '';
+    showScreen('withdraw');
+  } catch (error) {
+    showToast(error.message);
+    logout();
+  }
 };
 
 const submitWithdraw = async () => {
-  const amount = Number(document.getElementById('withdrawAmountInput').value.trim());
-  if (amount < 100) {
-    showToast('Minimum withdrawal amount is ₹100.');
-    return;
+  try {
+    const amount = Number(document.getElementById('withdrawAmountInput').value.trim());
+    if (amount < 100) {
+      showToast('Minimum withdrawal amount is ₹100.');
+      return;
+    }
+    await walletAction('withdraw', amount, 'Withdrawal from UI', 'Wallet debited successfully.');
+  } catch (error) {
+    showToast(error.message);
   }
-  await walletAction('withdraw', amount, 'Withdrawal from UI', 'Wallet debited successfully.');
 };
 
 const submitKyc = async () => {
@@ -240,6 +260,14 @@ const logout = () => {
   showScreen('register');
 };
 
+const enforceTokenSync = () => {
+  const tokenInStorage = localStorage.getItem('wallet_token') || '';
+  if (state.token && state.token !== tokenInStorage) {
+    showToast('Session expired. Please login again.');
+    logout();
+  }
+};
+
 document.getElementById('registerBtn').addEventListener('click', () => requestOtp('REGISTER'));
 document.getElementById('loginBtn').addEventListener('click', () => requestOtp('LOGIN'));
 document.getElementById('submitOtpBtn').addEventListener('click', verifyOtp);
@@ -266,6 +294,8 @@ document.getElementById('submitKycBtn').addEventListener('click', submitKyc);
 document.getElementById('logoutBtn').addEventListener('click', logout);
 document.getElementById('logoutTextBtn').addEventListener('click', logout);
 Array.from(document.querySelectorAll('[data-back="account"]')).forEach((button) => button.addEventListener('click', renderAccount));
+window.addEventListener('storage', enforceTokenSync);
+setInterval(enforceTokenSync, 1000);
 
 if (state.token) {
   renderAccount().catch(() => logout());

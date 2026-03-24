@@ -192,6 +192,56 @@ test('OTP request accepts formatted mobile numbers with spaces', async () => {
   }
 });
 
+test('REGISTER OTP request rejects already registered users', async () => {
+  resetDb();
+  const { server, baseUrl } = await startServer();
+  try {
+    const registerOtpResponse = await fetch(`${baseUrl}/api/v1/auth/otp/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mobileNumber: '+919111111111', purpose: 'REGISTER' })
+    });
+    const registerOtpBody = await registerOtpResponse.json();
+    await fetch(`${baseUrl}/api/v1/auth/otp/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mobileNumber: '+919111111111',
+        purpose: 'REGISTER',
+        otp: registerOtpBody.data.otp
+      })
+    });
+
+    const secondRegisterResponse = await fetch(`${baseUrl}/api/v1/auth/otp/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mobileNumber: '+919111111111', purpose: 'REGISTER' })
+    });
+    const secondRegisterBody = await secondRegisterResponse.json();
+    assert.equal(secondRegisterResponse.status, 409);
+    assert.match(secondRegisterBody.message, /already registered/i);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+test('LOGIN OTP request rejects unknown users', async () => {
+  resetDb();
+  const { server, baseUrl } = await startServer();
+  try {
+    const loginOtpResponse = await fetch(`${baseUrl}/api/v1/auth/otp/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mobileNumber: '+919222222222', purpose: 'LOGIN' })
+    });
+    const loginOtpBody = await loginOtpResponse.json();
+    assert.equal(loginOtpResponse.status, 404);
+    assert.match(loginOtpBody.message, /register first/i);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
 test('KYC accepts Aadhaar numbers formatted with spaces', async () => {
   resetDb();
   const { server, baseUrl } = await startServer();

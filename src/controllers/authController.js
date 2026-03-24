@@ -13,6 +13,9 @@ const requestOtp = ({ mobileNumber, purpose }) => {
   if (purpose === 'LOGIN' && !userModel.findByMobileNumber(normalizedMobileNumber)) {
     throw new ApiError(404, 'User not found. Please register first.');
   }
+  if (purpose === 'REGISTER' && userModel.findByMobileNumber(normalizedMobileNumber)) {
+    throw new ApiError(409, 'User already registered. Please use login.');
+  }
 
   return {
     statusCode: 201,
@@ -25,7 +28,7 @@ const verifyMobileOtp = ({ mobileNumber, purpose, otp, fullName }) => {
   assertPurpose(purpose);
   assertOtp(otp);
   verifyOtp({ mobileNumber: normalizedMobileNumber, purpose, otp });
-  const payload = registerOrLoginByMobile({ mobileNumber: normalizedMobileNumber, fullName });
+  const payload = registerOrLoginByMobile({ mobileNumber: normalizedMobileNumber, fullName, purpose });
   return { statusCode: 200, body: { success: true, message: 'Authentication successful.', data: payload } };
 };
 
