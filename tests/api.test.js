@@ -8,7 +8,7 @@ const db = require('../src/config/database');
 const { runMigrations } = require('../src/migrations/schema');
 const { createApp } = require('../src/app');
 const { buildGoogleAuthUrl, decodeState, syncGoogleUser } = require('../src/services/oauthService');
-const { parseEnvContent, loadEnvFiles, mergeEnv } = require('../src/utils/envFile');
+const { parseEnvContent, loadEnvFiles, mergeEnv, loadEnvFilesWithMeta } = require('../src/utils/envFile');
 
 const resetDb = () => {
   runMigrations();
@@ -28,6 +28,18 @@ const startServer = async () => {
   const address = app.address();
   return { server: app, baseUrl: `http://127.0.0.1:${address.port}` };
 };
+
+test('env loader returns source metadata for loaded keys', () => {
+  const fs = require('fs');
+  const os = require('os');
+  const path = require('path');
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'walletapp-env-meta-'));
+  const envPath = path.join(tempDir, '.env');
+  fs.writeFileSync(envPath, 'GOOGLE_CLIENT_ID=from-meta\n');
+  const loaded = loadEnvFilesWithMeta(tempDir);
+  assert.equal(loaded.values.GOOGLE_CLIENT_ID, 'from-meta');
+  assert.equal(loaded.sources.GOOGLE_CLIENT_ID, envPath);
+});
 
 test('env merge does not overwrite non-empty values with empty fallback values', () => {
   const merged = mergeEnv({ GOOGLE_CLIENT_ID: 'real-client' }, { GOOGLE_CLIENT_ID: '' });
@@ -79,6 +91,7 @@ test('health endpoint responds successfully', async () => {
     const body = await response.json();
     assert.equal(response.status, 200);
     assert.equal(body.success, true);
+    assert.equal(typeof body.diagnostics.oauth.googleClientIdLoaded, 'boolean');
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }

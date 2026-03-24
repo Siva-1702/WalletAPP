@@ -7,6 +7,7 @@ const { serveUi } = require('../controllers/uiController');
 const { requireAuth } = require('../middlewares/authMiddleware');
 const { readJsonBody, sendJson } = require('../utils/json');
 const ApiError = require('../utils/apiError');
+const env = require('../config/env');
 
 const notFound = (res) => sendJson(res, 404, { success: false, message: 'Route not found.' });
 
@@ -30,7 +31,13 @@ const routeRequest = async (req, res) => {
     }
 
     if (req.method === 'GET' && path === '/api/v1/health') {
-      return sendJson(res, 200, { success: true, message: 'WalletAPP API is healthy.' });
+      return sendJson(res, 200, {
+        success: true,
+        message: 'WalletAPP API is healthy.',
+        diagnostics: {
+          oauth: env.envDiagnostics
+        }
+      });
     }
 
     if (req.method === 'POST' && path === '/api/v1/auth/otp/request') {

@@ -49,3 +49,5 @@ npm start
 - After changing `.env` or `.env.example`, restart the Node server so new values are loaded.
 - If you accidentally pasted the env block as one line with literal `\n`, the loader now normalizes it automatically.
 - The runtime also checks `.env.examp` as a compatibility fallback, but empty values from fallback files will not overwrite valid loaded credentials.
+
+- Use `GET /api/v1/health` to verify OAuth diagnostics (`googleClientIdLoaded`, `googleClientSecretLoaded`, and source paths) for faster local debugging.

@@ -36,24 +36,29 @@ const parseEnvContent = (content) => normalizeContent(content)
     return accumulator;
   }, {});
 
-const mergeEnv = (baseEnv, incomingEnv) => Object.entries(incomingEnv).reduce((accumulator, [key, value]) => {
-  if (value === '' && accumulator[key]) {
-    return accumulator;
-  }
+const mergeEnvWithMeta = (state, incomingEnv, sourceFile) => {
+  const nextValues = { ...state.values };
+  const nextSources = { ...state.sources };
 
-  return {
-    ...accumulator,
-    [key]: value
-  };
-}, baseEnv);
+  Object.entries(incomingEnv).forEach(([key, value]) => {
+    if (value === '' && nextValues[key]) {
+      return;
+    }
 
-const loadEnvFiles = (baseDir) => {
+    nextValues[key] = value;
+    nextSources[key] = sourceFile;
+  });
+
+  return { values: nextValues, sources: nextSources };
+};
+
+const loadEnvFilesWithMeta = (baseDir) => {
   const basePath = baseDir || process.cwd();
   const fallbackRoot = path.resolve(__dirname, '..', '..');
   const directories = [fallbackRoot, basePath];
   const fileNames = ['.env.example', '.env', '.env.local'];
 
-  let loaded = {};
+  let state = { values: {}, sources: {} };
   directories.forEach((directory) => {
     fileNames.forEach((fileName) => {
       const filePath = path.join(directory, fileName);
@@ -61,16 +66,22 @@ const loadEnvFiles = (baseDir) => {
         return;
       }
 
-      loaded = mergeEnv(loaded, parseEnvContent(fs.readFileSync(filePath, 'utf8')));
+      const parsed = parseEnvContent(fs.readFileSync(filePath, 'utf8'));
+      state = mergeEnvWithMeta(state, parsed, filePath);
     });
 
     const typoPath = path.join(directory, '.env.examp');
     if (fs.existsSync(typoPath)) {
-      loaded = mergeEnv(loaded, parseEnvContent(fs.readFileSync(typoPath, 'utf8')));
+      const parsed = parseEnvContent(fs.readFileSync(typoPath, 'utf8'));
+      state = mergeEnvWithMeta(state, parsed, typoPath);
     }
   });
 
-  return loaded;
+  return state;
 };
 
-module.exports = { parseEnvContent, loadEnvFiles, mergeEnv };
+const mergeEnv = (baseEnv, incomingEnv) => mergeEnvWithMeta({ values: baseEnv, sources: {} }, incomingEnv, '').values;
+
+const loadEnvFiles = (baseDir) => loadEnvFilesWithMeta(baseDir).values;
+
+module.exports = { parseEnvContent, loadEnvFiles, mergeEnv, loadEnvFilesWithMeta };
