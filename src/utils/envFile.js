@@ -36,23 +36,41 @@ const parseEnvContent = (content) => normalizeContent(content)
     return accumulator;
   }, {});
 
+const mergeEnv = (baseEnv, incomingEnv) => Object.entries(incomingEnv).reduce((accumulator, [key, value]) => {
+  if (value === '' && accumulator[key]) {
+    return accumulator;
+  }
+
+  return {
+    ...accumulator,
+    [key]: value
+  };
+}, baseEnv);
+
 const loadEnvFiles = (baseDir) => {
   const basePath = baseDir || process.cwd();
   const fallbackRoot = path.resolve(__dirname, '..', '..');
   const directories = [fallbackRoot, basePath];
-  const fileNames = ['.env.example', '.env', '.env.local', '.env.examp'];
+  const fileNames = ['.env.example', '.env', '.env.local'];
 
-  return directories.reduce((accumulator, directory) => fileNames.reduce((nestedAccumulator, fileName) => {
-    const filePath = path.join(directory, fileName);
-    if (!fs.existsSync(filePath)) {
-      return nestedAccumulator;
+  let loaded = {};
+  directories.forEach((directory) => {
+    fileNames.forEach((fileName) => {
+      const filePath = path.join(directory, fileName);
+      if (!fs.existsSync(filePath)) {
+        return;
+      }
+
+      loaded = mergeEnv(loaded, parseEnvContent(fs.readFileSync(filePath, 'utf8')));
+    });
+
+    const typoPath = path.join(directory, '.env.examp');
+    if (fs.existsSync(typoPath)) {
+      loaded = mergeEnv(loaded, parseEnvContent(fs.readFileSync(typoPath, 'utf8')));
     }
+  });
 
-    return {
-      ...nestedAccumulator,
-      ...parseEnvContent(fs.readFileSync(filePath, 'utf8'))
-    };
-  }, accumulator), {});
+  return loaded;
 };
 
-module.exports = { parseEnvContent, loadEnvFiles };
+module.exports = { parseEnvContent, loadEnvFiles, mergeEnv };

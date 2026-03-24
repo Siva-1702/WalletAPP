@@ -48,4 +48,4 @@ npm start
 ## OAuth Troubleshooting
 - After changing `.env` or `.env.example`, restart the Node server so new values are loaded.
 - If you accidentally pasted the env block as one line with literal `\n`, the loader now normalizes it automatically.
-- The runtime also checks `.env.examp` as a compatibility fallback in case of file naming mistakes.
+- The runtime also checks `.env.examp` as a compatibility fallback, but empty values from fallback files will not overwrite valid loaded credentials.

@@ -8,7 +8,7 @@ const db = require('../src/config/database');
 const { runMigrations } = require('../src/migrations/schema');
 const { createApp } = require('../src/app');
 const { buildGoogleAuthUrl, decodeState, syncGoogleUser } = require('../src/services/oauthService');
-const { parseEnvContent, loadEnvFiles } = require('../src/utils/envFile');
+const { parseEnvContent, loadEnvFiles, mergeEnv } = require('../src/utils/envFile');
 
 const resetDb = () => {
   runMigrations();
@@ -28,6 +28,11 @@ const startServer = async () => {
   const address = app.address();
   return { server: app, baseUrl: `http://127.0.0.1:${address.port}` };
 };
+
+test('env merge does not overwrite non-empty values with empty fallback values', () => {
+  const merged = mergeEnv({ GOOGLE_CLIENT_ID: 'real-client' }, { GOOGLE_CLIENT_ID: '' });
+  assert.equal(merged.GOOGLE_CLIENT_ID, 'real-client');
+});
 
 test('env parser supports pasted single-line content with escaped newlines', () => {
   const parsed = parseEnvContent('PORT=3000\nGOOGLE_CLIENT_ID=abc123\nGOOGLE_CLIENT_SECRET=secret123');
@@ -52,6 +57,18 @@ test('env loader falls back to .env.example and lets .env override it', async ()
   const loaded = loadEnvFiles(tempDir);
   assert.equal(loaded.GOOGLE_CLIENT_ID, 'real-client');
   assert.equal(loaded.PORT, '3000');
+});
+
+test('env loader keeps credentials when typo file has blanks', async () => {
+  const fs = require('fs');
+  const os = require('os');
+  const path = require('path');
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'walletapp-env-typo-'));
+  fs.writeFileSync(path.join(tempDir, '.env'), 'GOOGLE_CLIENT_ID=real-client\nGOOGLE_CLIENT_SECRET=real-secret\n');
+  fs.writeFileSync(path.join(tempDir, '.env.examp'), 'GOOGLE_CLIENT_ID=\nGOOGLE_CLIENT_SECRET=\n');
+  const loaded = loadEnvFiles(tempDir);
+  assert.equal(loaded.GOOGLE_CLIENT_ID, 'real-client');
+  assert.equal(loaded.GOOGLE_CLIENT_SECRET, 'real-secret');
 });
 
 test('health endpoint responds successfully', async () => {
