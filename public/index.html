@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WalletAPP</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="mobile-shell">
+    <section class="screen active" id="screen-register">
+      <div class="top-dots">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="hero-card"></div>
+      <h1>Just Verify &amp; Play</h1>
+      <p class="subtitle">Enter your mobile number to register or login with a secure OTP.</p>
+      <label class="field">
+        <span>Mobile Number</span>
+        <input id="mobileNumber" type="tel" placeholder="+91 9876543210" value="+91 9876543210" />
+      </label>
+      <p class="hint">You will receive an OTP for verification.</p>
+      <label class="checkbox-row">
+        <input id="adultConsent" type="checkbox" checked />
+        <span>I certify that I am 18 years old.</span>
+      </label>
+      <div class="stack gap-sm">
+        <button id="registerBtn" class="primary-btn">Register</button>
+        <button id="loginBtn" class="secondary-btn">Login</button>
+        <button id="googleRegisterBtn" class="google-btn">Continue with Google (Register)</button>
+        <button id="googleLoginBtn" class="google-btn google-btn-outline">Continue with Google (Login)</button>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-otp">
+      <div class="top-dots">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="hero-card"></div>
+      <h1>Enter your OTP</h1>
+      <p class="subtitle">Use the 6 digit code sent to your registered mobile number.</p>
+      <label class="field">
+        <span>Enter Your OTP</span>
+        <input id="otpInput" type="text" maxlength="6" placeholder="165415" />
+      </label>
+      <p class="hint">In development mode, the OTP is shown after requesting it.</p>
+      <div class="dev-otp" id="devOtpPanel" hidden>
+        <strong>Demo OTP:</strong> <span id="devOtpValue"></span>
+      </div>
+      <label class="checkbox-row">
+        <input id="otpConsent" type="checkbox" checked />
+        <span>I certify that I am 18 years old.</span>
+      </label>
+      <button id="submitOtpBtn" class="primary-btn">Submit</button>
+    </section>
+
+    <section class="screen" id="screen-name">
+      <div class="top-dots">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="hero-card"></div>
+      <h1>You&apos;re all set to Play!</h1>
+      <p class="subtitle">Please confirm your display name to complete your profile.</p>
+      <label class="field">
+        <span>Enter Your Name</span>
+        <input id="nameInput" type="text" placeholder="Praveen" />
+      </label>
+      <button id="saveNameBtn" class="primary-btn">Save Name</button>
+    </section>
+
+    <section class="screen account-screen" id="screen-account">
+      <header class="screen-header">
+        <button class="back-btn" id="logoutBtn">⟵</button>
+        <h2>My Account</h2>
+      </header>
+
+      <div class="profile-card">
+        <div class="avatar">👨‍💼</div>
+        <div class="profile-meta">
+          <div class="profile-top-row">
+            <div>
+              <h3 id="profileName">JohnDoe</h3>
+              <p id="profileMobile">+91 7802013615</p>
+            </div>
+            <button id="editNameBtn" class="mini-btn">Edit</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="wallet-card">
+        <div class="wallet-summary-icon">💸</div>
+        <div class="wallet-summary-content">
+          <span class="section-label">TOTAL WALLET BALANCE</span>
+          <h3 id="walletBalance">₹0.00</h3>
+          <div class="wallet-row">
+            <div>
+              <span class="mini-label">DEPOSIT BALANCE</span>
+              <strong id="depositBalance">₹0.00</strong>
+            </div>
+            <button id="addMoneyBtn" class="primary-mini-btn">Add Money</button>
+          </div>
+          <div class="wallet-row">
+            <div>
+              <span class="mini-label">WINNINGS</span>
+              <strong id="winningBalance">₹0.00</strong>
+            </div>
+            <button id="withdrawBtn" class="outline-mini-btn">Withdraw</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="menu-row" id="openPassbookBtn">
+        <span>📒 Passbook</span>
+        <span>›</span>
+      </button>
+      <button class="menu-row" id="openKycBtn">
+        <span>⚙️ KYC Verification</span>
+        <span id="kycStatusBadge" class="status-badge">Pending</span>
+      </button>
+
+      <div class="support-row">
+        <div class="support-label">Customer Care</div>
+        <div class="support-actions">
+          <a href="sms:+919999999999" class="dark-btn">Message</a>
+          <a href="tel:+919999999999" class="dark-btn">Call Us</a>
+        </div>
+      </div>
+
+      <button class="logout-text-btn" id="logoutTextBtn">Logout</button>
+    </section>
+
+    <section class="screen" id="screen-passbook">
+      <header class="screen-header">
+        <button class="back-btn" data-back="account">⟵</button>
+        <h2>Passbook</h2>
+      </header>
+      <div class="summary-grid">
+        <div class="summary-box">
+          <span>Total Credits</span>
+          <strong id="totalCredits">₹0.00</strong>
+        </div>
+        <div class="summary-box">
+          <span>Total Debits</span>
+          <strong id="totalDebits">₹0.00</strong>
+        </div>
+      </div>
+      <div id="transactionList" class="transaction-list"></div>
+    </section>
+
+    <section class="screen" id="screen-kyc">
+      <header class="screen-header">
+        <button class="back-btn" data-back="account">⟵</button>
+        <h2>KYC Verification</h2>
+      </header>
+      <div class="kyc-intro">
+        <h3>Verify your Documents to join Cash Contests</h3>
+        <p>This helps us ensure you&apos;re from a restricted state and keeps your wallet secure.</p>
+      </div>
+      <div class="upload-card">
+        <div class="upload-icon">⇪</div>
+        <p>Enter Aadhaar Number</p>
+        <input id="aadhaarInput" type="text" maxlength="12" placeholder="123412341234" />
+      </div>
+      <button id="submitKycBtn" class="primary-btn">Submit</button>
+      <div id="kycResult" class="result-card" hidden></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/app.js"></script>
+</body>
+</html>
