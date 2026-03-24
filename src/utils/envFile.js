@@ -21,18 +21,15 @@ const parseEnvContent = (content) => normalizeContent(content)
       return accumulator;
     }
 
-    const separatorIndex = trimmedLine.indexOf('=');
-    if (separatorIndex === -1) {
+    const keyValueMatch = trimmedLine.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*[:=＝]\s*(.*)$/u);
+    if (!keyValueMatch) {
       return accumulator;
     }
 
-    const key = trimmedLine.slice(0, separatorIndex).trim();
-    const rawValue = trimmedLine.slice(separatorIndex + 1).trim();
-    const value = rawValue.replace(/^['"]|['"]$/g, '');
-    if (key) {
-      accumulator[key] = value;
-    }
-
+    const key = keyValueMatch[1];
+    const rawValue = keyValueMatch[2].trim();
+    const value = rawValue.replace(/^['"]|['"]$/g, '').replace(/\u0000/g, '').trim();
+    accumulator[key] = value;
     return accumulator;
   }, {});
 
@@ -50,6 +47,23 @@ const mergeEnvWithMeta = (state, incomingEnv, sourceFile) => {
   });
 
   return { values: nextValues, sources: nextSources };
+};
+
+const loadJsEnvFile = (filePath) => {
+  delete require.cache[require.resolve(filePath)];
+  // eslint-disable-next-line global-require, import/no-dynamic-require
+  const loaded = require(filePath);
+  if (!loaded || typeof loaded !== 'object') {
+    return {};
+  }
+
+  return Object.entries(loaded).reduce((accumulator, [key, value]) => {
+    if (typeof value === 'undefined' || value === null) {
+      return accumulator;
+    }
+    accumulator[key] = String(value);
+    return accumulator;
+  }, {});
 };
 
 const loadEnvFilesWithMeta = (baseDir) => {
@@ -78,6 +92,16 @@ const loadEnvFilesWithMeta = (baseDir) => {
 
       const parsed = parseEnvContent(fs.readFileSync(typoPath, 'utf8'));
       state = mergeEnvWithMeta(state, parsed, typoPath);
+    });
+
+    ['env.js', '.env.js'].forEach((jsEnvName) => {
+      const jsEnvPath = path.join(directory, jsEnvName);
+      if (!fs.existsSync(jsEnvPath)) {
+        return;
+      }
+
+      const parsed = loadJsEnvFile(jsEnvPath);
+      state = mergeEnvWithMeta(state, parsed, jsEnvPath);
     });
   });
 

@@ -30,6 +30,18 @@ const startServer = async () => {
   return { server: app, baseUrl: `http://127.0.0.1:${address.port}` };
 };
 
+test('env loader supports env.js object overrides for OAuth keys', async () => {
+  const fs = require('fs');
+  const os = require('os');
+  const path = require('path');
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'walletapp-env-js-'));
+  fs.writeFileSync(path.join(tempDir, '.env.example'), 'GOOGLE_CLIENT_ID=\nGOOGLE_CLIENT_SECRET=\n');
+  fs.writeFileSync(path.join(tempDir, 'env.js'), 'module.exports = { GOOGLE_CLIENT_ID: "from-js", GOOGLE_CLIENT_SECRET: "from-js-secret" };');
+  const loaded = loadEnvFilesWithMeta(tempDir);
+  assert.equal(loaded.values.GOOGLE_CLIENT_ID, 'from-js');
+  assert.equal(loaded.values.GOOGLE_CLIENT_SECRET, 'from-js-secret');
+});
+
 test('runtime env config is resolved dynamically', () => {
   const previousValue = process.env.GOOGLE_CLIENT_ID;
   process.env.GOOGLE_CLIENT_ID = 'dynamic-client-id';

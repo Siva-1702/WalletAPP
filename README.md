@@ -48,6 +48,6 @@ npm start
 ## OAuth Troubleshooting
 - Env values are reloaded dynamically on access, so saved `.env` / `.env.example` updates are picked up without restarting (still restart if you changed application code).
 - If you accidentally pasted the env block as one line with literal `\n`, the loader now normalizes it automatically.
-- The runtime also checks common typo file names (`.env.examp`, `.env.examr`, `.env.exmaple`) as compatibility fallbacks, but empty values from fallback files will not overwrite valid loaded credentials.
+- The runtime also checks common typo file names (`.env.examp`, `.env.examr`, `.env.exmaple`) and JS env files (`env.js`, `.env.js`) as compatibility fallbacks, but empty values from fallback files will not overwrite valid loaded credentials.
 
 - Use `GET /api/v1/health` to verify OAuth diagnostics (`googleClientIdLoaded`, `googleClientSecretLoaded`, and source paths) for faster local debugging.
