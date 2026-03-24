@@ -8,6 +8,7 @@ const db = require('../src/config/database');
 const { runMigrations } = require('../src/migrations/schema');
 const { createApp } = require('../src/app');
 const { buildGoogleAuthUrl, decodeState, syncGoogleUser } = require('../src/services/oauthService');
+const { parseEnvContent, loadEnvFiles } = require('../src/utils/envFile');
 
 const resetDb = () => {
   runMigrations();
@@ -27,6 +28,24 @@ const startServer = async () => {
   const address = app.address();
   return { server: app, baseUrl: `http://127.0.0.1:${address.port}` };
 };
+
+test('env file parser reads key value pairs and ignores comments', () => {
+  const parsed = parseEnvContent('# comment\nGOOGLE_CLIENT_ID=test-client\nGOOGLE_CLIENT_SECRET=test-secret\n');
+  assert.equal(parsed.GOOGLE_CLIENT_ID, 'test-client');
+  assert.equal(parsed.GOOGLE_CLIENT_SECRET, 'test-secret');
+});
+
+test('env loader falls back to .env.example and lets .env override it', async () => {
+  const fs = require('fs');
+  const os = require('os');
+  const path = require('path');
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'walletapp-env-'));
+  fs.writeFileSync(path.join(tempDir, '.env.example'), 'GOOGLE_CLIENT_ID=example-client\nPORT=3000\n');
+  fs.writeFileSync(path.join(tempDir, '.env'), 'GOOGLE_CLIENT_ID=real-client\n');
+  const loaded = loadEnvFiles(tempDir);
+  assert.equal(loaded.GOOGLE_CLIENT_ID, 'real-client');
+  assert.equal(loaded.PORT, '3000');
+});
 
 test('health endpoint responds successfully', async () => {
   resetDb();
