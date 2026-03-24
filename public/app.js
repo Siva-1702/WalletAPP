@@ -283,10 +283,13 @@ document.getElementById('submitWithdrawBtn').addEventListener('click', submitWit
 document.getElementById('openPassbookBtn').addEventListener('click', renderPassbook);
 document.getElementById('openKycBtn').addEventListener('click', async () => {
   const kyc = await api('/api/v1/kyc').catch(() => ({ data: null }));
+  document.getElementById('aadhaarInput').value = '';
   if (kyc.data?.aadhaarNumberMasked) {
     const result = document.getElementById('kycResult');
     result.hidden = false;
     result.innerHTML = `<strong>Status:</strong> ${kyc.data.status}<br/><strong>Document:</strong> ${kyc.data.aadhaarNumberMasked}`;
+  } else {
+    document.getElementById('kycResult').hidden = true;
   }
   showScreen('kyc');
 });
