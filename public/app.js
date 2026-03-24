@@ -2,7 +2,8 @@ const state = {
   token: localStorage.getItem('wallet_token') || '',
   user: JSON.parse(localStorage.getItem('wallet_user') || 'null'),
   currentPurpose: 'REGISTER',
-  devOtp: ''
+  devOtp: '',
+  googlePostAuthPending: false
 };
 
 const screens = {
@@ -42,8 +43,12 @@ const consumeOauthHash = async () => {
   if (token) {
     state.token = token;
     localStorage.setItem('wallet_token', token);
+    state.googlePostAuthPending = true;
+    document.getElementById('devOtpPanel').hidden = true;
+    document.getElementById('otpInput').value = '';
+    showToast('Google authentication successful. Please continue from OTP screen.');
     history.replaceState(null, '', '/');
-    await renderAccount();
+    showScreen('otp');
   }
 };
 
@@ -147,15 +152,22 @@ const requestOtp = async (purpose) => {
 };
 
 const verifyOtp = async () => {
-  const mobileInput = document.getElementById('mobileNumber');
-  const mobileNumber = normalizeMobileNumber(mobileInput.value);
-  mobileInput.value = mobileNumber;
-  const otp = document.getElementById('otpInput').value.trim();
   const consent = document.getElementById('otpConsent').checked;
   if (!consent) {
     showToast('Please confirm the age checkbox.');
     return;
   }
+
+  if (state.googlePostAuthPending && state.token) {
+    state.googlePostAuthPending = false;
+    await renderAccount();
+    return;
+  }
+
+  const mobileInput = document.getElementById('mobileNumber');
+  const mobileNumber = normalizeMobileNumber(mobileInput.value);
+  mobileInput.value = mobileNumber;
+  const otp = document.getElementById('otpInput').value.trim();
   const fullName = document.getElementById('nameInput').value.trim();
   try {
     const payload = await api('/api/v1/auth/otp/verify', {

@@ -51,3 +51,5 @@ npm start
 - The runtime also checks common typo file names (`.env.examp`, `.env.examr`, `.env.exmaple`) and JS env files (`env.js`, `.env.js`) as compatibility fallbacks, but empty values from fallback files will not overwrite valid loaded credentials.
 
 - Use `GET /api/v1/health` to verify OAuth diagnostics (`googleClientIdLoaded`, `googleClientSecretLoaded`, and source paths) for faster local debugging.
+
+- After successful Google auth, the UI now navigates to the OTP screen before proceeding to account, matching the requested flow.
