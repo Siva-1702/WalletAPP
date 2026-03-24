@@ -33,7 +33,7 @@ const currentUser = (user) => ({ statusCode: 200, body: { success: true, data: b
 
 const googleStart = (mode) => {
   if (!env.googleClientId || !env.googleClientSecret) {
-    throw new ApiError(503, 'Google OAuth is not configured.');
+    throw new ApiError(503, 'Google OAuth is not configured. Ensure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are present in .env or exported env vars, then restart the server.');
   }
 
   return { redirect: buildGoogleAuthUrl(mode) };
@@ -41,7 +41,7 @@ const googleStart = (mode) => {
 
 const googleCallback = async ({ code, state }) => {
   if (!env.googleClientId || !env.googleClientSecret) {
-    throw new ApiError(503, 'Google OAuth is not configured.');
+    throw new ApiError(503, 'Google OAuth is not configured. Ensure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are present in .env or exported env vars, then restart the server.');
   }
 
   const oauthState = decodeState(state);

@@ -43,3 +43,9 @@ npm start
 - Configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_CALLBACK_URL` in `.env` or export them as environment variables. The app now falls back to `.env.example` when `.env` is not present.
 - The UI uses `/api/v1/auth/google?mode=register` for first-time sign-up and `/api/v1/auth/google?mode=login` for returning users.
 - Register mode rejects existing Google accounts, and login mode rejects users who have not registered with Google yet.
+
+
+## OAuth Troubleshooting
+- After changing `.env` or `.env.example`, restart the Node server so new values are loaded.
+- If you accidentally pasted the env block as one line with literal `\n`, the loader now normalizes it automatically.
+- The runtime also checks `.env.examp` as a compatibility fallback in case of file naming mistakes.

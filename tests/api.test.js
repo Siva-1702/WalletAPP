@@ -29,6 +29,13 @@ const startServer = async () => {
   return { server: app, baseUrl: `http://127.0.0.1:${address.port}` };
 };
 
+test('env parser supports pasted single-line content with escaped newlines', () => {
+  const parsed = parseEnvContent('PORT=3000\nGOOGLE_CLIENT_ID=abc123\nGOOGLE_CLIENT_SECRET=secret123');
+  assert.equal(parsed.PORT, '3000');
+  assert.equal(parsed.GOOGLE_CLIENT_ID, 'abc123');
+  assert.equal(parsed.GOOGLE_CLIENT_SECRET, 'secret123');
+});
+
 test('env file parser reads key value pairs and ignores comments', () => {
   const parsed = parseEnvContent('# comment\nGOOGLE_CLIENT_ID=test-client\nGOOGLE_CLIENT_SECRET=test-secret\n');
   assert.equal(parsed.GOOGLE_CLIENT_ID, 'test-client');
