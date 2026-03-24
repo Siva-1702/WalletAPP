@@ -27,8 +27,6 @@
       <div class="stack gap-sm">
         <button id="registerBtn" class="primary-btn">Register</button>
         <button id="loginBtn" class="secondary-btn">Login</button>
-        <button id="googleRegisterBtn" class="google-btn">Continue with Google (Register)</button>
-        <button id="googleLoginBtn" class="google-btn google-btn-outline">Continue with Google (Login)</button>
       </div>
     </section>
 
@@ -145,6 +143,39 @@
         </div>
       </div>
       <div id="transactionList" class="transaction-list"></div>
+    </section>
+
+    <section class="screen" id="screen-add-money">
+      <header class="screen-header">
+        <button class="back-btn" data-back="account">⟵</button>
+        <h2>Add Money</h2>
+      </header>
+      <div class="action-card">
+        <p class="action-label">Available Wallet Balance</p>
+        <strong id="addMoneyCurrentBalance">₹0.00</strong>
+      </div>
+      <label class="field">
+        <span>Enter amount</span>
+        <input id="addMoneyAmountInput" type="number" min="1" step="1" placeholder="500" />
+      </label>
+      <button id="submitAddMoneyBtn" class="primary-btn">Proceed to Pay</button>
+    </section>
+
+    <section class="screen" id="screen-withdraw">
+      <header class="screen-header">
+        <button class="back-btn" data-back="account">⟵</button>
+        <h2>Withdraw</h2>
+      </header>
+      <div class="action-card">
+        <p class="action-label">Redeemable Balance</p>
+        <strong id="withdrawCurrentBalance">₹0.00</strong>
+      </div>
+      <label class="field">
+        <span>Redeem Amount</span>
+        <input id="withdrawAmountInput" type="number" min="1" step="1" placeholder="100" />
+      </label>
+      <p class="hint">Minimum redeemable amount is ₹100.</p>
+      <button id="submitWithdrawBtn" class="primary-btn">Withdraw Money</button>
     </section>
 
     <section class="screen" id="screen-kyc">

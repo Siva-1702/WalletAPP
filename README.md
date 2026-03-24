@@ -30,7 +30,7 @@ npm start
 
 ## UI
 - Open `http://localhost:3000/` to use the mobile UI screens that match the shared reference images.
-- The UI calls the same `/api/v1` endpoints used by Postman.
+- The UI calls the same `/api/v1` endpoints used by Postman and follows a mobile-number OTP flow (register/login, OTP, name capture, account, add money, withdraw, passbook, and KYC).
 
 
 ## KYC Provider Modes
@@ -41,7 +41,7 @@ npm start
 
 ## Google OAuth
 - Configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_CALLBACK_URL` in `.env` or export them as environment variables. The app now falls back to `.env.example` when `.env` is not present.
-- The UI uses `/api/v1/auth/google?mode=register` for first-time sign-up and `/api/v1/auth/google?mode=login` for returning users.
+- The API supports `/api/v1/auth/google?mode=register` for first-time sign-up and `/api/v1/auth/google?mode=login` for returning users.
 - Register mode rejects existing Google accounts, and login mode rejects users who have not registered with Google yet.
 
 
@@ -51,5 +51,3 @@ npm start
 - The runtime also checks common typo file names (`.env.examp`, `.env.examr`, `.env.exmaple`) and JS env files (`env.js`, `.env.js`) as compatibility fallbacks, but empty values from fallback files will not overwrite valid loaded credentials.
 
 - Use `GET /api/v1/health` to verify OAuth diagnostics (`googleClientIdLoaded`, `googleClientSecretLoaded`, and source paths) for faster local debugging.
-
-- After successful Google auth, the UI now navigates to the OTP screen before proceeding to account, matching the requested flow.

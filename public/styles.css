@@ -74,6 +74,22 @@ h1 { text-align: center; font-size: 18px; margin-bottom: 14px; }
 .profile-card, .wallet-card, .menu-row, .support-row, .summary-box, .upload-card {
   background: var(--card); border-radius: 12px;
 }
+.action-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+.action-card strong {
+  font-size: 30px;
+}
+.action-label {
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
 .profile-card {
   display: flex; gap: 12px; align-items: center; padding: 12px; margin-bottom: 12px;
 }
@@ -133,8 +149,3 @@ h1 { text-align: center; font-size: 18px; margin-bottom: 14px; }
   padding: 12px 16px; border-radius: 999px; box-shadow: 0 8px 30px rgba(0,0,0,.35); font-size: 14px;
 }
 @media (max-width: 420px) { body { padding: 0; } .mobile-shell { max-width: 100%; border-radius: 0; min-height: 100vh; } .screen { min-height: 100vh; } }
-
-.google-btn {
-  width: 100%; border-radius: 9px; border: 1px solid #d9d9d9; padding: 14px 16px; font-size: 16px; font-weight: 700; cursor: pointer; background: #fff; color: #222;
-}
-.google-btn-outline { background: transparent; color: #fff; border-color: #fff; }

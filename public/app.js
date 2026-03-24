@@ -2,8 +2,7 @@ const state = {
   token: localStorage.getItem('wallet_token') || '',
   user: JSON.parse(localStorage.getItem('wallet_user') || 'null'),
   currentPurpose: 'REGISTER',
-  devOtp: '',
-  googlePostAuthPending: false
+  devOtp: ''
 };
 
 const screens = {
@@ -12,6 +11,8 @@ const screens = {
   name: document.getElementById('screen-name'),
   account: document.getElementById('screen-account'),
   passbook: document.getElementById('screen-passbook'),
+  addMoney: document.getElementById('screen-add-money'),
+  withdraw: document.getElementById('screen-withdraw'),
   kyc: document.getElementById('screen-kyc')
 };
 
@@ -26,35 +27,7 @@ const normalizeMobileNumber = (value) => {
   return hasLeadingPlus ? `+${digitsOnly}` : digitsOnly;
 };
 
-
 const normalizeAadhaarNumber = (value) => value.replace(/\D/g, '');
-
-const consumeOauthHash = async () => {
-  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-  const token = hashParams.get('token');
-  const error = hashParams.get('error');
-
-  if (error) {
-    showToast(error);
-    history.replaceState(null, '', '/');
-    return;
-  }
-
-  if (token) {
-    state.token = token;
-    localStorage.setItem('wallet_token', token);
-    state.googlePostAuthPending = true;
-    document.getElementById('devOtpPanel').hidden = true;
-    document.getElementById('otpInput').value = '';
-    showToast('Google authentication successful. Please continue from OTP screen.');
-    history.replaceState(null, '', '/');
-    showScreen('otp');
-  }
-};
-
-const startGoogleAuth = (mode) => {
-  window.location.href = `/api/v1/auth/google?mode=${mode}`;
-};
 
 const showToast = (message) => {
   toast.textContent = message;
@@ -158,12 +131,6 @@ const verifyOtp = async () => {
     return;
   }
 
-  if (state.googlePostAuthPending && state.token) {
-    state.googlePostAuthPending = false;
-    await renderAccount();
-    return;
-  }
-
   const mobileInput = document.getElementById('mobileNumber');
   const mobileNumber = normalizeMobileNumber(mobileInput.value);
   mobileInput.value = mobileNumber;
@@ -201,17 +168,49 @@ const updateName = async () => {
   await renderAccount();
 };
 
-const walletAction = async (endpoint, action) => {
-  const amount = window.prompt(`Enter amount to ${action}`, action === 'add' ? '500' : '100');
-  if (!amount) {
+const walletAction = async (endpoint, amount, narration, successMessage) => {
+  const parsedAmount = Number(amount);
+  if (!parsedAmount || parsedAmount <= 0) {
+    showToast('Please enter a valid amount.');
     return;
   }
+
   await api(`/api/v1/wallet/${endpoint}`, {
     method: 'POST',
-    body: JSON.stringify({ amount: Number(amount), narration: action === 'add' ? 'Wallet top-up from UI' : 'Withdrawal from UI' })
+    body: JSON.stringify({ amount: parsedAmount, narration })
   });
   await renderAccount();
-  showToast(`Wallet ${action === 'add' ? 'credited' : 'debited'} successfully.`);
+  showToast(successMessage);
+};
+
+const openAddMoney = async () => {
+  const auth = await api('/api/v1/auth/me');
+  const wallet = auth.data.user.wallet || { balance: 0 };
+  document.getElementById('addMoneyCurrentBalance').textContent = money(wallet.balance);
+  document.getElementById('addMoneyAmountInput').value = '';
+  showScreen('addMoney');
+};
+
+const submitAddMoney = async () => {
+  const amount = document.getElementById('addMoneyAmountInput').value.trim();
+  await walletAction('add-money', amount, 'Wallet top-up from UI', 'Wallet credited successfully.');
+};
+
+const openWithdraw = async () => {
+  const auth = await api('/api/v1/auth/me');
+  const wallet = auth.data.user.wallet || { lockedBalance: 0 };
+  document.getElementById('withdrawCurrentBalance').textContent = money(wallet.lockedBalance || 0);
+  document.getElementById('withdrawAmountInput').value = '';
+  showScreen('withdraw');
+};
+
+const submitWithdraw = async () => {
+  const amount = Number(document.getElementById('withdrawAmountInput').value.trim());
+  if (amount < 100) {
+    showToast('Minimum withdrawal amount is ₹100.');
+    return;
+  }
+  await walletAction('withdraw', amount, 'Withdrawal from UI', 'Wallet debited successfully.');
 };
 
 const submitKyc = async () => {
@@ -244,15 +243,15 @@ const logout = () => {
 document.getElementById('registerBtn').addEventListener('click', () => requestOtp('REGISTER'));
 document.getElementById('loginBtn').addEventListener('click', () => requestOtp('LOGIN'));
 document.getElementById('submitOtpBtn').addEventListener('click', verifyOtp);
-document.getElementById('googleRegisterBtn').addEventListener('click', () => startGoogleAuth('register'));
-document.getElementById('googleLoginBtn').addEventListener('click', () => startGoogleAuth('login'));
 document.getElementById('saveNameBtn').addEventListener('click', updateName);
 document.getElementById('editNameBtn').addEventListener('click', () => {
   document.getElementById('nameInput').value = state.user?.fullName || '';
   showScreen('name');
 });
-document.getElementById('addMoneyBtn').addEventListener('click', () => walletAction('add-money', 'add'));
-document.getElementById('withdrawBtn').addEventListener('click', () => walletAction('withdraw', 'withdraw'));
+document.getElementById('addMoneyBtn').addEventListener('click', openAddMoney);
+document.getElementById('withdrawBtn').addEventListener('click', openWithdraw);
+document.getElementById('submitAddMoneyBtn').addEventListener('click', submitAddMoney);
+document.getElementById('submitWithdrawBtn').addEventListener('click', submitWithdraw);
 document.getElementById('openPassbookBtn').addEventListener('click', renderPassbook);
 document.getElementById('openKycBtn').addEventListener('click', async () => {
   const kyc = await api('/api/v1/kyc').catch(() => ({ data: null }));
@@ -268,7 +267,6 @@ document.getElementById('logoutBtn').addEventListener('click', logout);
 document.getElementById('logoutTextBtn').addEventListener('click', logout);
 Array.from(document.querySelectorAll('[data-back="account"]')).forEach((button) => button.addEventListener('click', renderAccount));
 
-consumeOauthHash().catch((error) => showToast(error.message));
 if (state.token) {
   renderAccount().catch(() => logout());
 } else {
