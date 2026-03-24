@@ -70,11 +70,15 @@ const loadEnvFilesWithMeta = (baseDir) => {
       state = mergeEnvWithMeta(state, parsed, filePath);
     });
 
-    const typoPath = path.join(directory, '.env.examp');
-    if (fs.existsSync(typoPath)) {
+    ['.env.examp', '.env.examr', '.env.exmaple'].forEach((typoName) => {
+      const typoPath = path.join(directory, typoName);
+      if (!fs.existsSync(typoPath)) {
+        return;
+      }
+
       const parsed = parseEnvContent(fs.readFileSync(typoPath, 'utf8'));
       state = mergeEnvWithMeta(state, parsed, typoPath);
-    }
+    });
   });
 
   return state;

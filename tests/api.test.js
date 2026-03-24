@@ -9,6 +9,7 @@ const { runMigrations } = require('../src/migrations/schema');
 const { createApp } = require('../src/app');
 const { buildGoogleAuthUrl, decodeState, syncGoogleUser } = require('../src/services/oauthService');
 const { parseEnvContent, loadEnvFiles, mergeEnv, loadEnvFilesWithMeta } = require('../src/utils/envFile');
+const env = require('../src/config/env');
 
 const resetDb = () => {
   runMigrations();
@@ -28,6 +29,30 @@ const startServer = async () => {
   const address = app.address();
   return { server: app, baseUrl: `http://127.0.0.1:${address.port}` };
 };
+
+test('runtime env config is resolved dynamically', () => {
+  const previousValue = process.env.GOOGLE_CLIENT_ID;
+  process.env.GOOGLE_CLIENT_ID = 'dynamic-client-id';
+  assert.equal(env.googleClientId, 'dynamic-client-id');
+  if (typeof previousValue === 'string') {
+    process.env.GOOGLE_CLIENT_ID = previousValue;
+  } else {
+    delete process.env.GOOGLE_CLIENT_ID;
+  }
+});
+
+test('env loader supports typo file names like .env.examr', async () => {
+  const fs = require('fs');
+  const os = require('os');
+  const path = require('path');
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'walletapp-env-examr-'));
+  const typoPath = path.join(tempDir, '.env.examr');
+  fs.writeFileSync(typoPath, 'GOOGLE_CLIENT_ID=from-examr\nGOOGLE_CLIENT_SECRET=secret-examr\n');
+  const loaded = loadEnvFilesWithMeta(tempDir);
+  assert.equal(loaded.values.GOOGLE_CLIENT_ID, 'from-examr');
+  assert.equal(loaded.values.GOOGLE_CLIENT_SECRET, 'secret-examr');
+  assert.equal(loaded.sources.GOOGLE_CLIENT_ID, typoPath);
+});
 
 test('env loader returns source metadata for loaded keys', () => {
   const fs = require('fs');
